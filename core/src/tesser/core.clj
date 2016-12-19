@@ -280,8 +280,8 @@
       (t/tesser [[\"hi\"] [\"there\"]] (t/fold str))
       ; => \"therehi\""
   ([^Iterable chunks fold]
-    (tesser chunks fold (.. Runtime getRuntime availableProcessors)))
-  ([^Iterable chunks fold threads]
+    (tesser (.. Runtime getRuntime availableProcessors) chunks fold))
+  ([threads ^Iterable chunks fold]
   (let [fold     (compile-fold fold)
         t0       (System/nanoTime)
         iter     (.iterator chunks)
