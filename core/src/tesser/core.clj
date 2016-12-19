@@ -279,10 +279,11 @@
 
       (t/tesser [[\"hi\"] [\"there\"]] (t/fold str))
       ; => \"therehi\""
-  [^Iterable chunks fold]
+  ([^Iterable chunks fold]
+    (tesser chunks fold (.. Runtime getRuntime availableProcessors)))
+  ([^Iterable chunks fold threads]
   (let [fold     (compile-fold fold)
         t0       (System/nanoTime)
-        threads  (.. Runtime getRuntime availableProcessors)
         iter     (.iterator chunks)
         reducer  (chunk-reducer fold)
         combiner (chunk-combiner fold)
@@ -335,7 +336,7 @@
             ; Ensure workers are dead
             (core/mapv future-cancel workers))))
 
-      (finally))))
+      (finally)))))
         ; Stop printing stats
 ;        (stats)
 
@@ -594,20 +595,20 @@
 
    :combiner     (fn combiner [outer-acc reductions]
                    (let [acc' (core/reduce (fn merger [acc [c2 x2]]
-                                        (let [[c1 x1] acc]
-                                          (if (= n c1)
+                                            (let [[c1 x1] acc]
+                                              (if (= n c1)
                                             ; Done
-                                            (reduced acc)
+                                                (reduced acc)
                                             ; OK, how big would we get if we
                                             ; merged x2?
-                                            (let [c' (+ c1 c2)]
-                                              (if (< n c')
+                                                (let [c' (+ c1 c2)]
+                                                  (if (< n c')
                                                 ; Too big; pass
-                                                acc
+                                                    acc
                                                 ; Within bounds; take it!
-                                                (scred combiner-
-                                                       (list c' (combiner-
-                                                                  x1 x2))))))))
+                                                    (scred combiner-
+                                                           (list c' (combiner-
+                                                                      x1 x2))))))))
                                       outer-acc
                                       (partition 2 reductions))]
 
@@ -841,11 +842,11 @@
                     ; Fold value m into accumulator map
                     (core/reduce (fn [acc [k v]]
                               ; Fold in each kv pair in m
-                              (assoc acc k
-                                     (reducer-
+                                  (assoc acc k
+                                         (reducer-
                                        ; TODO: only invoke downstream identity
                                        ; when necessary
-                                       (get acc k (reducer-identity-)) v)))
+                                           (get acc k (reducer-identity-)) v)))
                             acc
                             m))
    :post-reducer      identity
